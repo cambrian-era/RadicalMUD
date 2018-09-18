@@ -1,18 +1,11 @@
 defmodule MUD do
+  use Application
+
   @moduledoc """
   Documentation for MUD.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> MUD.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start(_type, _args) do
+    state = MUD.State.start_link([])
   end
 end

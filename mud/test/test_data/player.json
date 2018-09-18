@@ -1,0 +1,19 @@
+{
+  "name": "Alice",
+  "level": 1,
+  "pronouns": {
+    "subject": "she",
+    "object": "her",
+    "possessive": "hers",
+    "reflexive": "herself"
+  },
+  "stats": {
+    "hp": [100, 100],
+    "mp": [50, 50],
+    "sp": [50, 50],
+    "str": 10,
+    "agi": 10,
+    "int": 10,
+    "sta": 10
+  }
+}
