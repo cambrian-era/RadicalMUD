@@ -29,13 +29,17 @@ defmodule MUD.State do
   Returns true if a player with a given name exists in the current state.
   """
   def player_exists?(state, name) do
-    Agent.get(state, &Map.get(&1, :players)) |> Enum.any?(&(&1.name == name))
+    state 
+    |> Agent.get(&Map.get(&1, :players))
+    |> Enum.any?(&(&1.name == name))
   end
 
   @doc """
   Returns a player if that player exists, otherwise returns nil.
   """
   def get_player_by_name(state, name) do
-    Agent.get(state, &Map.get(&1, :players)) |> Enum.find(&(&1.name == name))
+    state 
+    |> Agent.get(&Map.get(&1, :players))
+    |> Enum.find(&(&1.name == name))
   end
 end

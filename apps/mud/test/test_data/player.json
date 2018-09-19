@@ -1,5 +1,6 @@
 {
   "name": "Alice",
+  "id": "0e04ecb4-bbb5-11e8-a355-529269fb1459",
   "level": 1,
   "pronouns": {
     "subject": "she",
@@ -10,7 +11,7 @@
   "stats": {
     "hp": [100, 100],
     "mp": [50, 50],
-    "sp": [50, 50],
+    "sp": [10, 50],
     "str": 10,
     "agi": 10,
     "int": 10,

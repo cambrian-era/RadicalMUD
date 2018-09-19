@@ -6,8 +6,6 @@ defmodule MUD.Loader do
   A general JSON loader
   """
 
-  types = [:player]
-
   def load(path) do
     { result, file } = File.read(path)
     if result == :ok do
