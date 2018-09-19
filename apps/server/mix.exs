@@ -18,7 +18,7 @@ defmodule Server.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :ranch],
       mod: {Server.Application, []}
     ]
   end
@@ -27,7 +27,8 @@ defmodule Server.MixProject do
   defp deps do
     [
       {:cowboy, "~> 2.4.0"},
-      {:ranch, "~>1.6.0"},
+      {:ranch, "~>1.5.0"},
+      {:elixir_uuid, "~> 1.2"},
       {:power_assert, "~>0.1.2", only: :test}
     ]
   end

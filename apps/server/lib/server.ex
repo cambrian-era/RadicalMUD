@@ -3,16 +3,13 @@ defmodule Server do
   Documentation for Server.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Server.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start_link(:tcp, opts) do
+    :ranch.start_listener(
+      :server,
+      :ranch_tcp,
+      [{:port, opts[:port]}],
+      Server.Telnet,
+      []
+    )
   end
 end

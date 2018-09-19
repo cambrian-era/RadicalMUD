@@ -6,10 +6,9 @@ defmodule Server.Application do
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
+    import Supervisor.Spec, warn: false
     children = [
-      # Starts a worker by calling: Server.Worker.start_link(arg)
-      # {Server.Worker, arg},
+      worker(Server, [:tcp, [port: 5555]])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

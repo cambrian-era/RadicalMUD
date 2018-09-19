@@ -1,6 +1,6 @@
 defmodule MUD.StateTest do
-  use ExUnit.Case
-
+  use PowerAssert
+  
   doctest MUD.State
 
   setup _context do

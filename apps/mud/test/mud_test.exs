@@ -1,4 +1,4 @@
 defmodule MUDTest do
-  use ExUnit.Case
+  use PowerAssert
   doctest MUD
 end

@@ -1,5 +1,5 @@
 defmodule MUD.LoaderTest do
-  use ExUnit.Case
+  use PowerAssert
 
   require Logger
 
