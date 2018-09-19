@@ -23,7 +23,8 @@ defmodule MUD.MixProject do
   defp deps do
     [
       {:poison, "~> 3.1"},
-      {:elixir_uuid, "~> 1.2"}
+      {:elixir_uuid, "~> 1.2"},
+      {:power_assert, "~>0.1.2", only: :test}
     ]
   end
 end
