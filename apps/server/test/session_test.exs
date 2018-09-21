@@ -9,30 +9,26 @@ defmodule Server.SessionTest do
   end
 
   describe "session functions" do
-    test "can create a new session", context do
-      sessions = context[:sessions]
+    test "can create a new session" do
+      id = Server.Session.create()
 
-      id = Server.Session.create(sessions)
-
-      [{_, data}, {_, time}] = new_session = Server.Session.get(sessions, id)
+      [{_, data}, {_, time}] = new_session = Server.Session.get(id)
 
       assert Kernel.length(new_session) == 2
       assert data == ""
       assert time == 0
     end
 
-    test "can update a session", context do
-      sessions = context[:sessions]
+    test "can update a session" do
+      id = Server.Session.create()
 
-      id = Server.Session.create(sessions)
-
-      Server.Session.update(sessions, id, :data, "Hello")
-      updated = Server.Session.get(sessions, id)
+      Server.Session.update(id, :data, "Hello")
+      updated = Server.Session.get(id)
       
       assert updated[:data] == "Hello"
 
-      Server.Session.update(sessions, id, :time, 1)
-      update = Server.Session.get(sessions, id)
+      Server.Session.update(id, :time, 1)
+      update = Server.Session.get(id)
 
       assert update[:time] == 1
     end

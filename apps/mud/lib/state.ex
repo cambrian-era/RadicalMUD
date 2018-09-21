@@ -9,7 +9,7 @@ defmodule MUD.State do
   Starts a new game state.
   """
   def start_link(_opts) do
-    Agent.start_link(fn -> %{players: []} end)
+    Agent.start_link(fn -> %{players: []} end, [name: MUD.State])
   end
 
   @doc """
@@ -17,29 +17,27 @@ defmodule MUD.State do
   given props. If the player does not exist, create
   them, otherwise load them.
   """
-  def add_player(state, props) do
-    player = MUD.Player.create(Map.get(props, :name))
+  def add_player(name) do
+    player = MUD.Player.create(name)
 
-    Agent.get_and_update(state, fn state ->
-      {state, Map.put(state, :players, state[:players] ++ [player])}
+    Agent.update(__MODULE__, fn state ->
+      Map.put(state, :players, state[:players] ++ [player])
     end)
   end
 
   @doc """
   Returns true if a player with a given name exists in the current state.
   """
-  def player_exists?(state, name) do
-    state 
-    |> Agent.get(&Map.get(&1, :players))
+  def player_exists?(name) do
+    Agent.get(__MODULE__, &Map.get(&1, :players))
     |> Enum.any?(&(&1.name == name))
   end
 
   @doc """
   Returns a player if that player exists, otherwise returns nil.
   """
-  def get_player_by_name(state, name) do
-    state 
-    |> Agent.get(&Map.get(&1, :players))
+  def get_player_by_name(name) do
+    Agent.get(__MODULE__, &Map.get(&1, :players))
     |> Enum.find(&(&1.name == name))
   end
 end

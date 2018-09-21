@@ -1,41 +1,36 @@
 defmodule Server.Session do
+  use Agent
   @moduledoc """
   A simple session manager
   """
-
-  use Agent
-
   require UUID
 
   def start_link(_opts) do
-    Agent.start_link(fn -> %{} end)
+    Agent.start_link(fn -> %{} end, [name: Server.Session])
   end
 
-  def create(sessions) do
+  def create() do
     id = UUID.uuid4()
-    Agent.get_and_update(sessions, fn state ->
-      new_session = [data: "", time: 0]
-      {state, Map.put(state, id, new_session)}
+    Agent.update(__MODULE__, fn state ->
+      Map.put(state, id, [data: "", time: 0])
     end)
 
     id
   end
 
-  def get(sessions, id) do
-    Agent.get(sessions, &Map.get(&1, id))
+  def get(id) do
+    Agent.get(__MODULE__, &Map.get(&1, id))
   end
 
-  def update(sessions, id, :data, data) do
-    Agent.get_and_update(sessions, fn state ->
-      m = Map.get(state, id) |> Keyword.update(:data, "", fn _ -> data end)
-      {state, %{state | id => m}}
+  def update(id, :data, data) do
+    Agent.update(__MODULE__, fn state ->
+      Map.replace!(state, id, Keyword.replace!(state[id], :data, data))
     end)
   end
 
-  def update(sessions, id, :time, time) do
-    Agent.get_and_update(sessions, fn state ->
-      m = Map.get(state, id) |> Keyword.update(:time, 0, fn _ -> time end)
-      {state, %{state | id => m}}
+  def update(id, :time, time) do
+    Agent.update(__MODULE__, fn state ->
+      Map.replace!(state, id, Keyword.replace!(state[id], :time, time))
     end)
   end
 end

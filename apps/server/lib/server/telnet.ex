@@ -21,10 +21,10 @@ defmodule Server.Telnet do
   end
 
   def handle_info({:tcp, socket, data}, state = %{socket: socket, transport: transport}) do
-    IO.inspect data
-    transport.send(socket, data)
+    IO.inspect socket
     {:noreply, state}
   end
+
   def handle_info({:tcp_closed, socket}, state = %{socket: socket, transport: transport}) do
     IO.puts "Closing"
     transport.close(socket)
