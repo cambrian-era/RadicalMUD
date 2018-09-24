@@ -10,27 +10,39 @@ defmodule Server.SessionTest do
 
   describe "session functions" do
     test "can create a new session" do
-      id = Server.Session.create()
+      id = Server.Session.create(:telnet, fn x -> x end)
 
-      [{_, data}, {_, time}] = new_session = Server.Session.get(id)
+      %Server.Session.Telnet{} = new_session = Server.Session.get(id)
 
-      assert Kernel.length(new_session) == 2
-      assert data == ""
-      assert time == 0
+      assert new_session.data == ''
+      assert new_session.time == 0
+
+      state_result = new_session.state.('a')
+      assert state_result == 'a'
     end
 
     test "can update a session" do
-      id = Server.Session.create()
+      id = Server.Session.create(:telnet, fn x -> x end)
 
       Server.Session.update(id, :data, "Hello")
       updated = Server.Session.get(id)
 
-      assert updated[:data] == "Hello"
+      assert updated.data == "Hello"
 
       Server.Session.update(id, :time, 1)
-      update = Server.Session.get(id)
+      updated = Server.Session.get(id)
 
-      assert update[:time] == 1
+      assert updated.time == 1
+
+      Server.Session.transition(id, fn -> 'b' end)
+      updated = Server.Session.get(id)
+
+      assert updated.state.() == 'b'
+
+      Server.Session.update(id, :opts, 'terminal_type', 'ANSI')
+      updated = Server.Session.get(id)
+
+      assert updated.opts['terminal_type'] == 'ANSI'
     end
   end
 end

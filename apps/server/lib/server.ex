@@ -4,6 +4,8 @@ defmodule Server do
   """
 
   def start_link(:tcp, opts) do
+    Server.Session.start_link([])
+
     :ranch.start_listener(
       :server,
       :ranch_tcp,

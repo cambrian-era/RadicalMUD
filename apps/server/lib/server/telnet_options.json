@@ -1,7 +1,42 @@
 {
   "supported_options" : {
-    "terminal type" : {
-      "code": 21
+    "transmit_binary" : {
+      "code": 0,
+      "responses":{
+        "will": "dont",
+        "do": "wont"
+      }
+    },
+    "echo" : {
+      "code": 1,
+      "responses": {
+        "will": "will",
+        "do": ["will", "ANSI"],
+        "dont": "wont"
+      }
+    },
+    "status" : {
+      "code": 5,
+      "responses": {
+        "will": "wont",
+        "do": "dont"
+      }
+    },
+    "timing_mark" : {
+      "code": 6,
+      "responses":{
+        "will": "dont",
+        "do": "wont",
+        "dont": "wont"
+      }
+    },
+    "terminal_type" : {
+      "code": 21,
+      "responses": {
+        "will": "will",
+        "do": ["will", "ANSI"],
+        "dont": "wont"
+      }
     }
   }
 }

@@ -1,3 +1,25 @@
+defmodule Server.Session.Telnet do
+  @enforce_keys [:id, :state]
+
+  defstruct id: "",
+            data: '',
+            time: 0,
+            opts: %{},
+            state: nil
+
+  @type t() :: %__MODULE__{
+          id: String.t(),
+          data: <<>>,
+          time: number(),
+          opts: Map.t(),
+          state: function()
+        }
+
+  def set_opt(session, key, value) do
+    Map.replace!(session, :opts, Map.put(session.opts, key, value))
+  end
+end
+
 defmodule Server.Session do
   use Agent
 
@@ -10,14 +32,20 @@ defmodule Server.Session do
     Agent.start_link(fn -> %{} end, name: Server.Session)
   end
 
-  def create() do
-    id = UUID.uuid4()
+  @spec create(type :: atom(), state :: fun()) :: String.t()
+  def create(:telnet, state) do
+    session = %Server.Session.Telnet{
+      id: UUID.uuid4(),
+      data: <<>>,
+      time: 0,
+      state: state
+    }
 
     Agent.update(__MODULE__, fn state ->
-      Map.put(state, id, data: "", time: 0)
+      Map.put(state, session.id, session)
     end)
 
-    id
+    session.id
   end
 
   def get(id) do
@@ -26,13 +54,25 @@ defmodule Server.Session do
 
   def update(id, :data, data) do
     Agent.update(__MODULE__, fn state ->
-      Map.replace!(state, id, Keyword.replace!(state[id], :data, data))
+      Map.replace!(state, id, Map.replace!(state[id], :data, data))
     end)
   end
 
   def update(id, :time, time) do
     Agent.update(__MODULE__, fn state ->
-      Map.replace!(state, id, Keyword.replace!(state[id], :time, time))
+      Map.replace!(state, id, Map.replace!(state[id], :time, time))
+    end)
+  end
+
+  def update(id, :opts, key, value) do
+    Agent.update(__MODULE__, fn state ->
+      Map.replace!(state, id, Server.Session.Telnet.set_opt(state[id], key, value))
+    end)
+  end
+
+  def transition(id, new_state, args \\ []) do
+    Agent.update(__MODULE__, fn state ->
+      Map.replace!(state, id, Map.replace!(state[id], :state, new_state))
     end)
   end
 end
