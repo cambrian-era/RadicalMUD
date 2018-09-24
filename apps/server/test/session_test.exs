@@ -24,7 +24,7 @@ defmodule Server.SessionTest do
 
       Server.Session.update(id, :data, "Hello")
       updated = Server.Session.get(id)
-      
+
       assert updated[:data] == "Hello"
 
       Server.Session.update(id, :time, 1)

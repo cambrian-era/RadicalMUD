@@ -1,18 +1,20 @@
 defmodule Server.Session do
   use Agent
+
   @moduledoc """
   A simple session manager
   """
   require UUID
 
   def start_link(_opts) do
-    Agent.start_link(fn -> %{} end, [name: Server.Session])
+    Agent.start_link(fn -> %{} end, name: Server.Session)
   end
 
   def create() do
     id = UUID.uuid4()
+
     Agent.update(__MODULE__, fn state ->
-      Map.put(state, id, [data: "", time: 0])
+      Map.put(state, id, data: "", time: 0)
     end)
 
     id

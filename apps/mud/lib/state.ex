@@ -9,7 +9,7 @@ defmodule MUD.State do
   Starts a new game state.
   """
   def start_link(_opts) do
-    Agent.start_link(fn -> %{players: []} end, [name: MUD.State])
+    Agent.start_link(fn -> %{players: []} end, name: MUD.State)
   end
 
   @doc """

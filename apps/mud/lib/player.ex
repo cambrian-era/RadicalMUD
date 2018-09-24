@@ -1,5 +1,4 @@
 defmodule MUD.Player do
-  require Logger
   defstruct name: "",
             id: "",
             level: 1,
@@ -32,16 +31,19 @@ defmodule MUD.Player do
       name: data["name"],
       id: data["id"],
       level: data["level"],
-      stats: Enum.map(data["stats"], fn stat ->
-          { name, value } = stat
+      stats:
+        Enum.map(data["stats"], fn stat ->
+          {name, value} = stat
+
           if is_list(value) do
             {String.to_atom(name), List.to_tuple(value)}
           else
             {String.to_atom(name), value}
           end
-        end) |> Map.new(),
+        end)
+        |> Map.new(),
       pronouns: data["pronouns"]
-      }
+    }
   end
 
   @doc """

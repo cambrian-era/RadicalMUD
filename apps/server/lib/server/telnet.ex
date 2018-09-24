@@ -1,13 +1,23 @@
 defmodule Server.Telnet do
   @behaviour :ranch_protocol
 
+  # @cr <<13>>
+  # @lf <<10>>
+
+  @iac <<255>>
+
+  @sub_begin <<250>>
+  @sub_end <<240>>
+
+  @term_type <<24>>
+
   def start_link(ref, socket, transport, _opts) do
     pid = spawn_link(__MODULE__, :init, [ref, socket, transport])
     {:ok, pid}
   end
 
   def init(ref, socket, transport) do
-    IO.puts "Starting Telnet"
+    IO.puts("Starting Telnet")
 
     :ok = :ranch.accept_ack(ref)
     :ok = transport.setopts(socket, [{:active, false}])
@@ -17,31 +27,35 @@ defmodule Server.Telnet do
 
   def server_handler(socket, transport) do
     response = transport.recv(socket, 0, 50000)
-    
+
     case response do
       {:ok, data} ->
         handle_data(data, socket, transport)
+
       {:error, :closed} ->
-        IO.puts "Closing connection - Normal"
+        IO.puts("Closing connection - Normal")
         transport.close(socket)
+
       {:error, :timeout} ->
-        IO.puts "Closing connection - Timeout"
+        IO.puts("Closing connection - Timeout")
         transport.close(socket)
     end
   end
 
   defp handle_data(<<255::size(8), data::binary>>, socket, transport) do
     data
-    |> String.split(<<255>>)
+    |> String.split(@iac)
     |> Enum.each(fn code ->
       case handle_response(code) do
-        {:ok, response } ->
+        {:ok, response} ->
           transport.send(socket, response)
-        {:error, response } ->
-          IO.puts "Don't know how to handle this"
-          IO.inspect response
+
+        {:error, response} ->
+          IO.puts("Don't know how to handle this")
+          IO.inspect(response)
       end
     end)
+
     server_handler(socket, transport)
   end
 
@@ -51,31 +65,75 @@ defmodule Server.Telnet do
   end
 
   defp handle_data(data, socket, transport) do
-    IO.inspect data
+    IO.inspect(data)
     server_handler(socket, transport)
   end
 
   defp request_term_type(socket, transport) do
-    transport.send(socket, <<255, 253, 24>>)
+    transport.send(socket, <<@iac, 250, 24>>)
     server_handler(socket, transport)
   end
 
-  # WILL  251 	Sender wants to do something.
-  # WONT  252 	Sender doesn't want to do something.
-  # DO    253 	Sender wants the other end to do something.
-  # DONT  254 	Sender wants the other not to do something.
-  defp handle_response(<<251::size(8), code::binary>>) do
+  defp handle_response(<<250::size(8), code::binary>>) do
     case code do
-      <<24>> -> # Get terminal type
-        {:ok, <<255, 250, 24, 1, 255, 240>>}
-      _ -> # Just deny anything else.
-        IO.inspect code
+      # Get terminal type
+
+      @term_type ->
+        build :will, :term_type
+      #   {:ok, <<@iac, @sub_begin, @term_type, 1, @iac, @sub_end>>}
+
+      # Just deny anything else.
+      _ ->
+        IO.inspect(code)
         {:error, code}
     end
   end
 
   defp handle_response(<<250::size(8), code::binary>>) do
-    IO.inspect code
-    {:ok, <<240>>}
+    IO.inspect(code)
+    {:ok, @sub_end}
   end
+
+  defp iac() do
+    @iac
+  end
+
+  defp iac(bits) do
+    bits <> @iac
+  end
+
+  defp sub_begin(bits) do
+    bits <> @sub_begin
+  end
+
+  defp sub_end(bits) do
+    bits <> @sub_end
+  end
+
+  # @will <<251>>
+  # @wont <<252>>
+  # @do_ <<253>>
+  # @dont <<254>>
+
+  defp build(command, option) do
+    iac()
+    |> sub_begin()
+    |> option [@term_type, 1]
+    |> iac()
+    |> sub_end()
+  end
+
+  defp command(bits, command) do
+    case command do
+      :will ->
+        bits <> <<251>>
+      :wont ->
+        bits <> <<252>>
+      :do ->
+        bits <> <<253>>
+      :dont ->
+        bits <> <<254>>
+    end
+  end
+
 end

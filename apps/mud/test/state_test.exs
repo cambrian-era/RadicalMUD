@@ -1,6 +1,6 @@
 defmodule MUD.StateTest do
   use PowerAssert
-  
+
   doctest MUD.State
 
   describe "character storage" do
