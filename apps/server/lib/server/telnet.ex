@@ -8,10 +8,13 @@ defmodule Server.Telnet do
 
   @iac <<255>>
 
-  # @sub_begin <<250>>
-  # @sub_end <<240>>
+  @will <<251>>
+  @wont <<252>>
+  @do_ <<253>>
+  @dont <<254>>
 
-  # @term_type <<24>>
+  @sub_begin <<250>>
+  @sub_end <<240>>
 
   def start_link(ref, socket, transport, _opts) do
     pid = spawn_link(__MODULE__, :init, [ref, socket, transport])
@@ -19,7 +22,7 @@ defmodule Server.Telnet do
   end
 
   def init(ref, socket, transport) do
-    IO.puts("Starting Telnet connection")
+    Logger.info "Starting Telnet connection"
     session_id = Server.Session.create(:telnet, &__MODULE__.listen_state/4)
 
     :ok = :ranch.accept_ack(ref)
@@ -54,7 +57,8 @@ defmodule Server.Telnet do
         Server.Session.update(session_id, :data, <<>>)
 
       <<255::size(8), _::binary>> ->
-        
+        IO.inspect data
+        transport.send(socket, build_response(data))
       _ ->
         transport.send(socket, data)
         Server.Session.update(
@@ -68,20 +72,35 @@ defmodule Server.Telnet do
   end
 
   def build_response(data) do
-    
-  end
-
-  def negotiate_begin_state(session_id, socket, transport) do
-    server_handler(session_id, socket, transport)
-  end
-
-  def negotiate_listen_state(session_id, socket, transport) do
-    server_handler(session_id, socket, transport)
-  end
-
-  def negotiate_end_state(session_id, socket, transport) do
-    server_handler(session_id, socket, transport)
+    options = Server.Telnet.Options.options()
+    Enum.map(String.split(data, @iac), fn (chunk) ->
+      case chunk do
+        <<251::size(8), code::binary>> ->
+          response = options[code][:responses][@will]
+          case response do
+            nil ->
+              nil
+            _ ->
+              @iac <> response <> code
+          end
+        <<252::size(8), code::binary>> ->
+          @iac <> code <> options[code][:responses][@wont]
+        <<253::size(8), code::binary>> ->
+          response = options[code][:responses][@do_]
+          case response do
+            nil ->
+              nil
+            _ ->
+              @iac <> response <> code
+          end
+        <<254::size(8), code::binary>> ->
+          @iac <> code <> options[code][:responses][@dont]
+        _ ->
+          nil
+      end
+    end)
+    |> Enum.filter(&(&1 != nil))
+    |> List.flatten()
+    |> :binary.list_to_bin()
   end
 end
-
-# <<255, 251, 31, 255, 251, 32, 255, 251, 24, 255, 251, 39, 255, 253, 1, 255, 251, 3, 255, 253, 3>>
