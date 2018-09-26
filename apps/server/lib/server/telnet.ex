@@ -22,11 +22,12 @@ defmodule Server.Telnet do
   end
 
   def init(ref, socket, transport) do
-    Logger.info "Starting Telnet connection"
+    Logger.info "Connected: #{:inet.peername(socket) |> elem(1) |> inspect()}"
     session_id = Server.Session.create(:telnet, &__MODULE__.listen_state/4)
 
     :ok = :ranch.accept_ack(ref)
-    :ok = transport.setopts(socket, [{:active, false}])
+    :ok = transport.setopts(socket, [{:active, false}, {:keepalive, true}])
+    transport.send(socket, "Welcome")
     # request_term_type(socket, transport)
     server_handler(session_id, socket, transport)
   end
@@ -41,11 +42,11 @@ defmodule Server.Telnet do
         session.state.(session_id, socket, transport, data)
 
       {:error, :closed} ->
-        IO.puts("Closing connection - Normal")
+        IO.puts("Closing connection - Normal: #{:inet.peername(socket) |> elem(1) |> inspect()}")
         transport.close(socket)
 
       {:error, :timeout} ->
-        IO.puts("Closing connection - Timeout")
+        IO.puts("Closing connection - Timeout: #{:inet.peername(socket) |> elem(1) |> inspect()}")
         transport.close(socket)
     end
   end
@@ -102,5 +103,19 @@ defmodule Server.Telnet do
     |> Enum.filter(&(&1 != nil))
     |> List.flatten()
     |> :binary.list_to_bin()
+  end
+
+  def color(text) do
+    regex = ~r|[(\d+)(?:, )?(\d+)?]{(.*)}|
+    matches = Regex.scan(regex, text)
+ 
+    Enum.each(matches, fn (match) ->
+      case Enum.count(match) do
+        2 ->
+          <<27>> <> "[38;5;" <> fg <> "m"
+        3 ->
+          <<27>> <> "[48;5;" <> bg <> "m"
+      end
+    )
   end
 end

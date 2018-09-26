@@ -1,7 +1,7 @@
 [
   {
     "name": "entrance",
-    "short_desc": "Training Yard Entrance",
+    "short_desc": "[175]{Training Yard Entrance}",
     "long_desc": "You stand at the entrance of the Radical Town Training Yard. Best as you can tell, it seems like it's just junkyard that has had signs painted all over it. A stack of tires reads, 'The Aggrocragg'.",
     "options": {
       "entrance": 1
@@ -10,7 +10,7 @@
   },
   {
     "name": "field",
-    "short_desc": "Training Yard Field",
+    "short_desc": "[175]{Training Yard Field}",
     "long_desc": "You're in an open field within the training yard. There are strategically placed pits full of Lego bricks that are presumably meant to serve as hazards.",
     "exits": [{"west": "entrance"}]
   }
