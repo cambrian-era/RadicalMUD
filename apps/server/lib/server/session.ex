@@ -1,18 +1,18 @@
 defmodule Server.Session.Telnet do
-  @enforce_keys [:id, :state]
+  @enforce_keys [:id, :middleware]
 
   defstruct id: "",
             data: '',
             time: 0,
             opts: %{},
-            state: nil
+            middleware: []
 
   @type t() :: %__MODULE__{
           id: String.t(),
           data: <<>>,
           time: number(),
           opts: Map.t(),
-          state: function()
+          middleware: [fun()]
         }
 
   def set_opt(session, key, value) do
@@ -32,13 +32,13 @@ defmodule Server.Session do
     Agent.start_link(fn -> %{} end, name: Server.Session)
   end
 
-  @spec create(type :: atom(), state :: fun()) :: String.t()
-  def create(:telnet, state) do
+  @spec create(type :: atom(), middleware :: [fun()]) :: String.t()
+  def create(:telnet, middleware) do
     session = %Server.Session.Telnet{
       id: UUID.uuid4(),
       data: <<>>,
       time: 0,
-      state: state
+      middleware: middleware
     }
 
     Agent.update(__MODULE__, fn state ->

@@ -16,6 +16,8 @@ defmodule Server.Telnet do
   @sub_begin <<250>>
   @sub_end <<240>>
 
+  @esc <<27, 91>>
+
   def start_link(ref, socket, transport, _opts) do
     pid = spawn_link(__MODULE__, :init, [ref, socket, transport])
     {:ok, pid}
@@ -23,12 +25,10 @@ defmodule Server.Telnet do
 
   def init(ref, socket, transport) do
     Logger.info "Connected: #{:inet.peername(socket) |> elem(1) |> inspect()}"
-    session_id = Server.Session.create(:telnet, &__MODULE__.listen_state/4)
+    session_id = Server.Session.create(:telnet, [&__MODULE__.listen_state/4])
 
     :ok = :ranch.accept_ack(ref)
     :ok = transport.setopts(socket, [{:active, false}, {:keepalive, true}])
-    transport.send(socket, "Welcome")
-    # request_term_type(socket, transport)
     server_handler(session_id, socket, transport)
   end
 
@@ -58,10 +58,11 @@ defmodule Server.Telnet do
         Server.Session.update(session_id, :data, <<>>)
 
       <<255::size(8), _::binary>> ->
-        IO.inspect data
-        transport.send(socket, build_response(data))
+        transport.send(socket, build_response(session_id, data))
       _ ->
-        transport.send(socket, data)
+        if Server.Session.get(session_id)[:opts][:echo] do
+          transport.send(socket, data)
+        end
         Server.Session.update(
           session_id,
           :data,
@@ -72,7 +73,7 @@ defmodule Server.Telnet do
     server_handler(session_id, socket, transport)
   end
 
-  def build_response(data) do
+  def build_response(session_id, data) do
     options = Server.Telnet.Options.options()
     Enum.map(String.split(data, @iac), fn (chunk) ->
       case chunk do
@@ -82,6 +83,12 @@ defmodule Server.Telnet do
             nil ->
               nil
             _ ->
+              case code do
+                <<1>> ->
+                  Server.Session.update(session_id, :opts, :echo, true)
+                _ ->
+                  nil
+              end
               @iac <> response <> code
           end
         <<252::size(8), code::binary>> ->
@@ -95,6 +102,12 @@ defmodule Server.Telnet do
               @iac <> response <> code
           end
         <<254::size(8), code::binary>> ->
+          case code do
+            <<1>> ->
+              Server.Session.update(session_id, :opts, :echo, false)
+            _ ->
+              nil
+          end
           @iac <> code <> options[code][:responses][@dont]
         _ ->
           nil
@@ -106,16 +119,16 @@ defmodule Server.Telnet do
   end
 
   def color(text) do
-    regex = ~r|[(\d+)(?:, )?(\d+)?]{(.*)}|
-    matches = Regex.scan(regex, text)
- 
-    Enum.each(matches, fn (match) ->
-      case Enum.count(match) do
-        2 ->
-          <<27>> <> "[38;5;" <> fg <> "m"
-        3 ->
-          <<27>> <> "[48;5;" <> bg <> "m"
+    regex = ~r/\[(\d+)(?:, )?(\d+)?\]\{([^\[]*)\}/
+
+    Regex.replace(regex, text, fn _, fg, bg, text -> 
+      out = @esc <> "38;5;" <> fg <> "m"
+      out = if bg != "" do
+        out <> @esc <> "48;5;" <> bg <> "m"
+      else
+        out
       end
-    )
+      out <> text <> @esc <> "0m"
+    end)
   end
 end
