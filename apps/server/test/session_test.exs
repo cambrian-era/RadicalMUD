@@ -3,22 +3,14 @@ defmodule Server.SessionTest do
 
   doctest Server.Session
 
-  setup _context do
-    {:ok, sessions} = Server.Session.start_link([])
-    {:ok, [sessions: sessions]}
-  end
-
   describe "session functions" do
     test "can create a new session" do
-      id = Server.Session.create(:telnet, fn x -> x end)
+      id = Server.Session.create(:telnet, [fn x -> x end])
 
       %Server.Session.Telnet{} = new_session = Server.Session.get(id)
 
-      assert new_session.data == ''
+      assert new_session.data == <<>>
       assert new_session.time == 0
-
-      state_result = new_session.state.('a')
-      assert state_result == 'a'
     end
 
     test "can update a session" do
@@ -33,11 +25,6 @@ defmodule Server.SessionTest do
       updated = Server.Session.get(id)
 
       assert updated.time == 1
-
-      Server.Session.transition(id, fn -> 'b' end)
-      updated = Server.Session.get(id)
-
-      assert updated.state.() == 'b'
 
       Server.Session.update(id, :opts, 'terminal_type', 'ANSI')
       updated = Server.Session.get(id)

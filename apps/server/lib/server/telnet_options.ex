@@ -4,10 +4,15 @@ defmodule Server.Telnet.Options do
   @do_ <<253>>
   @dont <<254>>
 
+  @iac <<255>>
+
+  @sb <<250>>
+  @se <<240>>
+
   def options do
     %{
       <<0>> => %{
-        name: "transmit_binary",
+        name: :transmit_binary,
         code: <<0>>,
         responses: %{
           @will => @wont,
@@ -17,7 +22,7 @@ defmodule Server.Telnet.Options do
         }
       },
       <<1>> => %{
-        name: "echo",
+        name: :echo,
         code: <<1>>,
         responses: %{
           @will => @will,
@@ -27,7 +32,7 @@ defmodule Server.Telnet.Options do
         }
       },
       <<5>> => %{
-        name: "status",
+        name: :status,
         code: <<5>>,
         responses: %{
           @will => @wont,
@@ -37,7 +42,7 @@ defmodule Server.Telnet.Options do
         }
       },
       <<6>> => %{
-        name: "timing_mark",
+        name: :timing_mark,
         code: <<6>>,
         responses: %{
           @will => @wont,
@@ -47,25 +52,25 @@ defmodule Server.Telnet.Options do
         }
       },
       <<21>> => %{
-         name: "terminal_type",
-          code: <<21>>,
-          responses: %{
-            @will => @will,
-            @do_ => <<251>> <> "xterm",
-            @dont => @wont
-          }
+        name: :terminal_type,
+        code: <<21>>,
+        responses: %{
+          @will => @will,
+          @do_ => <<251>> <> "xterm",
+          @dont => @wont
+        }
       },
       <<31>> => %{
-        name: "window_size",
-         code: <<21>>,
-         responses: %{
-           @will => @will,
-           @do_ => <<251, 0, 80, 0, 24>>,
-           @dont => @wont
-         }
-     },
-     <<32>> => %{
-        name: "terminal_speed",
+        name: :window_size,
+        code: <<21>>,
+        responses: %{
+          @will => @do_,
+          @do_ => @will <> @iac <> @sb <> <<0, 80, 0, 24>> <> @se,
+          @dont => @wont
+        }
+      },
+      <<32>> => %{
+        name: :terminal_speed,
         code: <<32>>,
         responses: %{
           @will => @wont,

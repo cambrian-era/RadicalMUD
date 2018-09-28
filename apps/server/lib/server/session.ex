@@ -2,7 +2,7 @@ defmodule Server.Session.Telnet do
   @enforce_keys [:id, :middleware]
 
   defstruct id: "",
-            data: '',
+            data: <<>>,
             time: 0,
             opts: %{},
             middleware: []
@@ -67,12 +67,6 @@ defmodule Server.Session do
   def update(id, :opts, key, value) do
     Agent.update(__MODULE__, fn state ->
       Map.replace!(state, id, Server.Session.Telnet.set_opt(state[id], key, value))
-    end)
-  end
-
-  def transition(id, new_state, args \\ []) do
-    Agent.update(__MODULE__, fn state ->
-      Map.replace!(state, id, Map.replace!(state[id], :state, new_state))
     end)
   end
 end
