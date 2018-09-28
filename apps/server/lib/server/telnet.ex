@@ -118,6 +118,25 @@ defmodule Server.Telnet do
     |> :binary.list_to_bin()
   end
 
+  def execute_middleware(session_id, middleware, text) do
+    Enum.each(middleware, fn (step) ->
+      response = step.(session_id, text)
+      if response != [] do
+        Enum.each(response, fn (chunk) ->
+
+        end)
+      end
+    end)
+  end
+
+  def handle_iac(session_id, text) do
+
+  end
+
+  def handle_negiotiation(session_id, text) do
+
+  end
+
   def color(text) do
     regex = ~r/\[(\d+)(?:, )?(\d+)?\]\{([^\[]*)\}/
 
