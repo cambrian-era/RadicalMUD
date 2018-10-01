@@ -1,4 +1,4 @@
-defmodule Server.Telnet.Options do
+defmodule RadServer.Telnet.Options do
   @will <<251>>
   @wont <<252>>
   @do_ <<253>>

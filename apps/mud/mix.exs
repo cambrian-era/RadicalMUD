@@ -24,7 +24,8 @@ defmodule MUD.MixProject do
     [
       {:poison, "~> 3.1"},
       {:elixir_uuid, "~> 1.2"},
-      {:power_assert, "~>0.1.2", only: :test}
+      {:power_assert, "~>0.1.2", only: :test},
+      {:server, in_umbrella: true}
     ]
   end
 end

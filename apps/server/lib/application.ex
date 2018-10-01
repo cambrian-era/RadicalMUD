@@ -1,4 +1,4 @@
-defmodule Server.Application do
+defmodule RadServer.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -9,12 +9,12 @@ defmodule Server.Application do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Server, [:tcp, [port: 5555]])
+      worker(RadServer, [:tcp, [port: 5555]])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Server.Supervisor]
+    opts = [strategy: :one_for_one, name: RadServer.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

@@ -1,4 +1,4 @@
-defmodule Server.Session.Telnet do
+defmodule RadServer.Session.Telnet do
   @enforce_keys [:id, :middleware]
 
   defstruct id: "",
@@ -20,7 +20,7 @@ defmodule Server.Session.Telnet do
   end
 end
 
-defmodule Server.Session do
+defmodule RadServer.Session do
   use Agent
 
   @moduledoc """
@@ -29,12 +29,12 @@ defmodule Server.Session do
   require UUID
 
   def start_link(_opts) do
-    Agent.start_link(fn -> %{} end, name: Server.Session)
+    Agent.start_link(fn -> %{} end, name: RadServer.Session)
   end
 
   @spec create(type :: atom(), middleware :: [fun()]) :: String.t()
   def create(:telnet, middleware) do
-    session = %Server.Session.Telnet{
+    session = %RadServer.Session.Telnet{
       id: UUID.uuid4(),
       data: <<>>,
       time: 0,
@@ -66,7 +66,7 @@ defmodule Server.Session do
 
   def update(id, :opts, key, value) do
     Agent.update(__MODULE__, fn state ->
-      Map.replace!(state, id, Server.Session.Telnet.set_opt(state[id], key, value))
+      Map.replace!(state, id, RadServer.Session.Telnet.set_opt(state[id], key, value))
     end)
   end
 end

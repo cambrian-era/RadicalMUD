@@ -1,6 +1,8 @@
-defmodule Server.Telnet do
-  alias Server.Session
-  alias Server.Telnet.Options, as: Options
+defmodule RadServer.Telnet do
+  alias RadServer.Session
+  alias RadServer.Telnet.Options, as: Options
+  use GenServer
+
   @behaviour :ranch_protocol
 
   require Logger
@@ -10,8 +12,11 @@ defmodule Server.Telnet do
   @esc <<27, 91>>
 
   def start_link(ref, socket, transport, _opts) do
-    pid = spawn_link(__MODULE__, :init, [ref, socket, transport])
-    {:ok, pid}
+    {:ok, :proc_lib.spawn_link(__MODULE__, :init, [ref, socket, transport])}
+  end
+
+  def init(args) do
+    {:ok, args}
   end
 
   def init(ref, socket, transport) do
@@ -24,31 +29,26 @@ defmodule Server.Telnet do
         &__MODULE__.handle_negotiation/2
       ])
 
-    :ok = :ranch.accept_ack(ref)
+    {:ok, _} = :ranch.handshake(ref)
     :ok = transport.setopts(socket, [{:active, false}, {:keepalive, true}])
 
-    transport.send(socket, Server.Telnet.build_prompt({100, 100}, {20, 40}, {30, 69}, 80, 24))
-
-    server_handler(sid, socket, transport)
+    :gen_server.enter_loop(__MODULE__, [], %{socket: socket, transport: transport, sid: sid})
   end
 
-  def server_handler(sid, socket, transport) do
-    response = transport.recv(socket, 0, 50000)
-
+  def handle_info({:tcp, socket, data}, state = %{socket: socket, transport: transport, sid: sid}) do
     session = Session.get(sid)
+    RadServer.Telnet.execute_middleware(sid, session.middleware, data, socket, transport)
 
-    case response do
-      {:ok, data} ->
-        Server.Telnet.execute_middleware(sid, session.middleware, data, socket, transport)
+    {:noreply, state}
+  end
 
-      {:error, :closed} ->
-        IO.puts("Closing connection - Normal: #{:inet.peername(socket) |> elem(1) |> inspect()}")
-        transport.close(socket)
-
-      {:error, :timeout} ->
-        IO.puts("Closing connection - Timeout: #{:inet.peername(socket) |> elem(1) |> inspect()}")
-        transport.close(socket)
-    end
+  def handle_info(
+        {:tcp_closed, socket},
+        state = %{socket: socket, transport: transport, sid: _sid}
+      ) do
+    IO.puts("Closing connection - Normal: #{:inet.peername(socket) |> elem(1) |> inspect()}")
+    transport.close(socket)
+    {:stop, :normal, state}
   end
 
   @doc """
@@ -70,8 +70,6 @@ defmodule Server.Telnet do
           nil
       end
     end)
-
-    server_handler(sid, socket, transport)
   end
 
   @doc """
@@ -176,7 +174,7 @@ defmodule Server.Telnet do
 
   def build_prompt(hp, mp, sp, width, height) do
     stat = fn fg, bg, label, cur, max ->
-      Server.Telnet.color("[#{fg}, #{bg}]{╫──#{label}─#{cur}/#{max}──╫}")
+      RadServer.Telnet.color("[#{fg}, #{bg}]{╫──#{label}─#{cur}/#{max}──╫}")
     end
 
     {cur_hp, max_hp} = hp
@@ -189,6 +187,8 @@ defmodule Server.Telnet do
 
     padding_size = width - 44 - 2
 
-    @esc <> "#{height - 1}H" <> "├" <> stat_block <> Enum.reduce(0..padding_size, "─", fn _, p -> p <> "─" end) <> "┤"
+    @esc <>
+      "#{height - 1}H" <>
+      "├" <> stat_block <> Enum.reduce(0..padding_size, "─", fn _, p -> p <> "─" end) <> "┤"
   end
 end
