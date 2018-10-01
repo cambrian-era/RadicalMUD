@@ -6,6 +6,6 @@ defmodule MUD do
   """
 
   def start(_type, _args) do
-    state = MUD.State.start_link([])
+    MUD.State.start_link([])
   end
 end

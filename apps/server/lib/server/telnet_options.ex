@@ -25,8 +25,8 @@ defmodule Server.Telnet.Options do
         name: :echo,
         code: <<1>>,
         responses: %{
-          @will => @will,
-          @do_ => <<251, 1>>,
+          @will => @dont,
+          @do_ => @will,
           @dont => @wont,
           @wont => @dont
         }
@@ -56,7 +56,7 @@ defmodule Server.Telnet.Options do
         code: <<21>>,
         responses: %{
           @will => @will,
-          @do_ => <<251>> <> "xterm",
+          @do_ => @will,
           @dont => @wont
         }
       },
@@ -72,6 +72,15 @@ defmodule Server.Telnet.Options do
       <<32>> => %{
         name: :terminal_speed,
         code: <<32>>,
+        responses: %{
+          @will => @wont,
+          @do_ => @dont,
+          @dont => @wont,
+          @wont => @dont
+        }
+      },
+      :else => %{
+        name: :undefined_option,
         responses: %{
           @will => @wont,
           @do_ => @dont,

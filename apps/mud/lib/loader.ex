@@ -32,6 +32,5 @@ defmodule MUD.Loader do
 
   def load_dungeon(path) do
     {:ok, dungeon} = MUD.Loader.load(path)
-    IO.inspect(dungeon)
   end
 end

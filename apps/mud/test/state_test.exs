@@ -10,12 +10,14 @@ defmodule MUD.StateTest do
       MUD.State.add_player("Bob")
 
       assert MUD.State.player_exists?("Bob") == true
+      
     end
 
     test "can retrieve a player character by name" do
-      assert MUD.State.get_player_by_name("Alice") == nil
+      MUD.State.add_player("Alice")
 
-      assert MUD.State.get_player_by_name("Bob").name == "Bob"
+      alice = MUD.State.get_player_by_name("Alice")
+      assert alice.name == "Alice"
     end
   end
 end
