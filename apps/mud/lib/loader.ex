@@ -23,7 +23,7 @@ defmodule MUD.Loader do
       dungeon_path = Path.join([Path.dirname(path), "dungeons", name, "dungeon.json"])
 
       if File.exists?(dungeon_path) do
-        load_dungeon(dungeon_path)
+        IO.inspect(load_dungeon(dungeon_path))
       else
         nil
       end
@@ -32,5 +32,7 @@ defmodule MUD.Loader do
 
   def load_dungeon(path) do
     {:ok, dungeon} = MUD.Loader.load(path)
+    {:ok, rooms} = Path.dirname(path) |> Path.join("rooms.json") |> MUD.Loader.load()
+    MUD.Dungeon.create(dungeon, rooms)
   end
 end

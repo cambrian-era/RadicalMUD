@@ -6,12 +6,13 @@
     "options": {
       "entrance": 1
     },
-    "exits": [{"east": "field"}]
+    "exits": {"east": "field"}
   },
   {
     "name": "field",
     "short_desc": "[175]{Training Yard Field}",
     "long_desc": "You're in an open field within the training yard. There are strategically placed pits full of Lego bricks that are presumably meant to serve as hazards.",
-    "exits": [{"west": "entrance"}]
+    "options": {},
+    "exits": {"west": "entrance"}
   }
 ]
